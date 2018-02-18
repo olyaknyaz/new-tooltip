@@ -1,6 +1,15 @@
 $(function () {
 
-  function Tooltip($elem, layout) {
+  function Tooltip(options) {
+
+    this.$elem = options.elem;
+    this.$layout = options.layout;
+
+    this.$window = $(window);
+    this.$body = $('body');
+
+    this.$activeElem = null;
+    this.$activeTooltip = null;
 
     this.arrowMargin = 28;
     var _self = this;
@@ -12,59 +21,70 @@ $(function () {
       return layout;
     };
 
+    this.create = function (elem) {
+      this.$activeElem = elem;
+      this.$activeTooltip = $(this.layoutTooltip(this.$layout));
+      this.$body.append(this.$activeTooltip);
+      this.setTooltipPosition(elem, this.$activeTooltip);
+    };
+
+    this.destroy = function () {
+      this.$activeTooltip.remove();
+      this.$activeElem = null;
+      this.$activeTooltip = null;
+    };
+
     this.hoverTooltip = function () {
-      var $tooltip = $(this.layoutTooltip(layout));
-      $elem
+      this.$activeTooltip = $(this.layoutTooltip(this.$layout));
+      // this.$activeElem = options.elem;
+      this.$elem
         .on('mouseenter touchstart', function () {
-          $('body').append($tooltip);
-          _self.setTooltipPosition($tooltip);
+          _self.create($(this));
+          console.log($(this));
         })
         .on('mouseleave touchend', function () {
-          $tooltip.remove();
+          _self.destroy();
         });
 
-
-      $(window).on('click touchend', function(){
-        $tooltip.remove();
-      });
+      // $(window).on('click touchend', function(){
+      //   _self.destroy();
+      // });
     };
 
     this.clickTooltip = function () {
-      var $tooltip = $(this.layoutTooltip(layout));
-
-      $elem.on('click', function (e) {
+      this.$activeTooltip = $(this.layoutTooltip(this.$layout));
+      this.$elem.on('click', function (e) {
         e.preventDefault();
-        $('body').append($tooltip);
-        _self.setTooltipPosition($tooltip);
+        _self.create($(this));
+        console.log($(this));
       });
 
-      $tooltip.on('click', '.js-close', function (e) {
+      this.$activeTooltip.on('click', '.js-close', function (e) {
         e.preventDefault();
-        $tooltip.remove();
-        return false;
+        _self.destroy();
       });
 
       $(document).click(function (e) {
-        if ($(e.target).closest($elem).length || $(e.target).closest($tooltip).length)
+        e.preventDefault();
+        if ($(e.target).closest(_self.$elem).length)
           return;
 
-        e.preventDefault();
-        $tooltip.remove();
+        _self.destroy();
 
       });
 
     };
 
-    this.setTooltipPosition = function (tooltip) {
-
+    this.setTooltipPosition = function (elem, tooltip) {
+      if (!this.$activeElem) return;
       var
-          top,
-          left,
-          tooltipHalf = (tooltip.innerWidth() / 2),
-          elemHalf = ($elem.innerWidth() / 2),
-          elemHeight = $elem.innerHeight(),
-          elemOffset = $elem.offset(),
-          $arrow = $('.arrow', tooltip);
+        top,
+        left,
+        tooltipHalf = (tooltip.innerWidth() / 2),
+        elemHalf = (elem.innerWidth() / 2),
+        elemHeight = elem.innerHeight(),
+        elemOffset = elem.offset(),
+        $arrow = $('.arrow', tooltip);
 
       left = elemOffset.left + elemHalf - tooltipHalf;
       top = elemOffset.top + elemHeight + 10;
@@ -77,7 +97,7 @@ $(function () {
     };
 
     $(window).on('resize orientationchange', function() {
-      _self.setTooltipPosition();
+      _self.setTooltipPosition(_self.$activeElem, _self.$activeTooltip);
     });
 
   }
@@ -85,10 +105,16 @@ $(function () {
   //=========================================================//
   //=========================================================//
 
-  var HoverTooltip = new Tooltip($('.js-tooltip-hover'), '<div class="tooltip-box"><div class="arrow top"></div>Tooltip 1</div>');
+  var HoverTooltip = new Tooltip({
+    elem: $('.js-tooltip-hover'),
+    layout: '<div class="tooltip-box"><div class="arrow top"></div>Tooltip hover</div>'
+  });
   HoverTooltip.hoverTooltip();
 
-  var ClickTooltip = new Tooltip($('.js-tooltip-click'), '<div class="tooltip-box"><div class="arrow top"></div>Tooltip 2 <a href="https://www.google.ru" class="js-close">x</a></div>');
+  var ClickTooltip = new Tooltip({
+    elem: $('.js-tooltip-click'),
+    layout: '<div class="tooltip-box"><div class="arrow top"></div>Tooltip click <a href="https://www.google.ru" class="js-close">x</a></div>'
+  });
   ClickTooltip.clickTooltip();
 
 });

@@ -63,3 +63,8 @@ body {
 .box1 {
 
 }
+
+.js-close {
+    position: relative;
+    z-index: 100;
+}
