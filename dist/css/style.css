@@ -1,47 +1,58 @@
 body {
-    padding: 0 50px;
+    padding-top: 100px;
+    font-family: 'Roboto', serif;
 }
-.tooltip {
-    margin-top: 150px;
-    font-size: 30px;
+
+.container {
+    width: 90%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.row {
+    display: flex;
+}
+
+.col {
+    width: 49%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.box {
+    margin: 20px;
+    font-size: 20px;
     text-align: center;
     padding: 20px;
     border: 1px solid gray;
     border-radius: 10px;
-    display: inline-block;
     cursor: pointer;
-}
-
-.toolt {
-    position: absolute;
-    background: #fff;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px 10px rgba(108, 108, 108, 0.22);
-    text-align: center;
-    font-size: 18px;
+    width: 170px;
 }
 
 .tooltip-box {
     position: absolute;
-    background: #fff;
+    background: #06d0ff;
     padding: 10px;
     border-radius: 10px;
-    box-shadow: 0 0 5px 5px rgba(108, 108, 108, 0.16);
+    box-shadow: 0 0 25px 7px rgba(108, 108, 108, 0.16);
     text-align: center;
-    font-size: 18px;
+    font-size: 16px;
+    color: #fff;
 }
 
-.tooltip .tooltip-box {
-    display: none;
+.tooltip-box span {
+    vertical-align: middle;
 }
 
-.tooltip.active .tooltip-box {
-    display: block;
+.icon {
+    margin-left: 10px;
 }
 
-.tooltip-box.left {
-
+.icon img {
+    vertical-align: middle;
 }
 
 .arrow {
@@ -51,20 +62,35 @@ body {
 }
 
 .arrow.top {
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 16px solid white;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 8px solid #06d0ff;
     top: -8px;
     left: 0;
     right: 0;
     margin: 0 auto;
 }
 
-.box1 {
-
+.arrow.bottom {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #06d0ff;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
 }
 
-.js-close {
-    position: relative;
-    z-index: 100;
+.arrow.left {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 8px solid #06d0ff;
+    left: -8px;
+}
+
+.arrow.right {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 8px solid #06d0ff;
+    right: -8px;
 }
