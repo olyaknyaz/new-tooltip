@@ -2,43 +2,93 @@ $(function () {
 
   function Tooltip(options) {
 
-    this.$elem = options.elem;
-    this.$layout = options.layout;
+    // Define options default
+    var settings = {
+      elem: null,
+      layout: '<div>This is Tooltip</div>',
+      position: 'bottom',
+      margin: 10,
+      animation: 'fade',
+      animationDuration: 350,
+      autoOpen: false
+    };
 
-    this.$position = options.position;
-    this.$tooltipMargin = options.margin;
+    settings = $.extend(settings, options);
 
+    // Create global element references
+    this.$activeElem = null;
+    this.$activeTooltip = null;
     this.$document = $(document);
     this.$window = $(window);
     this.$body = $('body');
 
-    this.$activeElem = null;
-    this.$activeTooltip = null;
-
     var _self = this;
 
-
-    this.setLayout = function (layout) {
-      if (!layout) {
-        layout = '<div>This is Tooltip</div>';
-      }
-      return layout;
-    };
-
+    // Public methods
     this.create = function (elem) {
+
       this.$activeElem = elem;
-      this.$activeTooltip = $(this.setLayout(this.$layout));
+      this.$activeTooltip = $(settings.layout);
+
       this.$body.append(this.$activeTooltip);
+
+      if (settings.animation) {
+        this.animate(this.$activeTooltip);
+      }
       this.setTooltipPosition(this.$activeElem, this.$activeTooltip);
     };
 
     this.destroy = function () {
-      this.$activeTooltip.remove();
+      if (settings.animation) {
+        this.removeAnimation(this.$activeTooltip);
+      } else {
+        this.$activeTooltip.remove();
+      }
       this.$activeElem = null;
+      this.$activeTooltip = null;
+    };
+
+    this.animate = function (tooltip) {
+
+      tooltip
+        .addClass('tooltip-' + settings.animation)
+        .addClass('tooltip-initial')
+        .css({
+          '-moz-animation-duration': settings.animationDuration + 'ms',
+          '-ms-animation-duration': settings.animationDuration + 'ms',
+          '-o-animation-duration': settings.animationDuration + 'ms',
+          '-webkit-animation-duration': settings.animationDuration + 'ms',
+          'animation-duration': settings.animationDuration + 'ms',
+          'transition-duration': settings.animationDuration + 'ms'
+        });
+
+      setTimeout(function() {
+
+        _self.$activeTooltip
+          .addClass('tooltip-show')
+          .removeClass('tooltip-initial');
+
+        if (settings.animationDuration > 0) {
+          _self.$activeTooltip.delay(settings.animationDuration);
+        }
+
+      }, 0);
+    };
+
+    this.removeAnimation = function (tooltip) {
+      tooltip
+        .clearQueue()
+        .removeClass('tooltip-show')
+        .addClass('tooltip-dying');
+
+      setTimeout(function() {
+        tooltip.remove();
+      }, settings.animationDuration);
+
     };
 
     this.hoverTooltip = function () {
-      this.$elem
+      settings.elem
         .on('mouseenter touchstart', function () {
           _self.create($(this));
         })
@@ -49,7 +99,7 @@ $(function () {
 
     this.clickTooltip = function () {
 
-      this.$elem.on('click', function (e) {
+      settings.elem.on('click', function (e) {
         e.preventDefault();
         if (_self.$activeElem)
             _self.destroy();
@@ -63,7 +113,7 @@ $(function () {
       });
 
       this.$document.on('click', function (e) {
-        if ($(e.target).closest(_self.$elem).length) return;
+        if ($(e.target).closest(settings.elem).length) return;
         _self.destroy();
       });
 
@@ -77,36 +127,32 @@ $(function () {
         top,
         left,
         topA,
-        margin = this.$tooltipMargin,
+        margin = settings.margin,
         tooltipHeight = tooltip.outerHeight(),
         tooltipHalf = (tooltip.outerWidth() / 2),
         elemHeight = elem.outerHeight(),
         elemHalf = (elem.outerWidth() / 2),
         elemOffset = elem.offset(),
-        $arrow = $('.arrow', tooltip),
-        windowWidth = this.$window;
-
-      if (!this.$tooltipMargin) margin = 10;
+        $arrow = $('.arrow', tooltip);
 
       left = elemOffset.left + elemHalf - tooltipHalf;
-      top = elemOffset.top + elemHeight + margin; /* По-умолчанию позиция тултипа - внизу */
+      top = elemOffset.top + elemHeight + margin;
 
 
-      if (this.$position === 'top') {
-
+      if (settings.position === 'top') {
         top = elemOffset.top - tooltipHeight - margin;
-
-      } else if (this.$position === 'left') {
+      } else if (settings.position === 'left') {
 
         left = elemOffset.left - tooltip.outerWidth() - margin;
 
-      } else if (this.$position === 'right') {
-
+        if (left < 0) {
+          left = 0;
+        }
+      } else if (settings.position === 'right') {
         left = elemOffset.left + elemHalf * 2 + margin;
-
       }
 
-      if (this.$position === 'left' || this.$position === 'right') {
+      if (settings.position === 'left' || settings.position === 'right') {
 
         top = elemOffset.top + elemHeight / 2 - tooltipHeight / 2;
 
@@ -116,12 +162,11 @@ $(function () {
         });
 
       }
-
+      console.log(left);
       tooltip.css({
         top: top,
         left: left
       });
-
 
     };
 
@@ -138,9 +183,11 @@ $(function () {
 
   var HoverTooltipTop = new Tooltip({
     elem: $('.js-tooltip-hover-top'),
-    layout: '<div class="tooltip-box"><div class="arrow bottom"></div>Tooltip hover top</div>',
+    layout: '<div class="tooltip-box"><div class="arrow bottom"></div>Tooltip hover top hello world hello world</div>',
     position: 'top',
-    margin: 20
+    margin: 20,
+    animation: 'fall',
+    animationDuration: 800
   });
 
   HoverTooltipTop.hoverTooltip();
@@ -177,9 +224,6 @@ $(function () {
 
 
 
-
-
-
   /*   Click Tooltip top   */
 
   var ClickTooltipTop = new Tooltip({
@@ -189,11 +233,15 @@ $(function () {
               '<span>Tooltip click top</span>' +
               '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
             '</div>',
-    position: 'top'
+    position: 'top',
+    animation: 'fall',
+    animationDuration: 800
   });
 
   ClickTooltipTop.destroy = function () {
-    $('.tooltip-box.top').remove();
+
+    this.removeAnimation($('.tooltip-box.top'));
+
   };
 
   ClickTooltipTop.clickTooltip();
