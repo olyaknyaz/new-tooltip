@@ -1,11 +1,10 @@
 $(function () {
 
-  function Tooltip(options) {
+  function Tooltip(options, callback) {
 
     // Define options default
     var settings = {
       elem: null,
-      layout: '<div>This is Tooltip</div>',
       position: 'bottom',
       margin: 10,
       animation: 'fade',
@@ -18,39 +17,103 @@ $(function () {
     // Create global element references
     this.$activeElem = null;
     this.$activeTooltip = null;
-    this.$document = $(document);
     this.$window = $(window);
     this.$body = $('body');
 
     var _self = this;
 
-    // Public methods
-    this.create = function (elem) {
+    // Private methods
+
+    this._setLayout = function () {
+      return callback(settings.elem);
+    };
+
+    this._create = function (elem) {
 
       this.$activeElem = elem;
-      this.$activeTooltip = $(settings.layout);
+      this.$activeTooltip = $(this._setLayout());
 
       this.$body.append(this.$activeTooltip);
 
       if (settings.animation) {
-        this.animate(this.$activeTooltip);
+        this._animate();
       }
-      this.setTooltipPosition(this.$activeElem, this.$activeTooltip);
+      this._setPosition();
     };
 
-    this.destroy = function () {
-      if (settings.animation) {
-        this.removeAnimation(this.$activeTooltip);
-      } else {
-        this.$activeTooltip.remove();
+    this._setPosition = function () {
+
+      if (!this.$activeElem) return;
+
+      var
+        top,
+        left,
+        topA,
+        leftA,
+        margin = settings.margin,
+        tooltipHeight = this.$activeTooltip.outerHeight(),
+        tooltipHalf = (this.$activeTooltip.outerWidth() / 2),
+        elemHeight = this.$activeElem.outerHeight(),
+        elemHalf = (this.$activeElem.outerWidth() / 2),
+        elemOffset = this.$activeElem.offset(),
+        $arrow = $('.arrow', this.$activeTooltip);
+
+      top = elemOffset.top + elemHeight + margin;
+      left = elemOffset.left + elemHalf - tooltipHalf;
+
+      topA = '-8px';
+      leftA = tooltipHalf - ($arrow.outerWidth() / 2);
+
+      if (settings.position === 'top') {
+        top = elemOffset.top - tooltipHeight - margin;
+        topA = tooltipHeight;
+        $arrow.css({transform : 'rotate(180deg)'});
+      }  else if (settings.position === 'left') {
+
+        left = elemOffset.left - this.$activeTooltip.outerWidth() - margin;
+        top = elemOffset.top + elemHeight / 2 - tooltipHeight / 2;
+        topA = tooltipHeight / 2 - 4;
+        leftA = this.$activeTooltip.outerWidth() - 2;
+        $arrow.css({transform : 'rotate(90deg)'});
+
+        if ((elemOffset.left - this.$activeTooltip.outerWidth()) < 0) {
+          left = elemOffset.left + elemHalf - tooltipHalf;
+          top = elemOffset.top + elemHeight + margin;
+          topA = '-8px';
+          leftA = tooltipHalf - ($arrow.outerWidth() / 2);
+          $arrow.css({transform : 'rotate(0deg)'});
+        }
+      } else if (settings.position === 'right') {
+        left = elemOffset.left + elemHalf * 2 + margin;
+        top = elemOffset.top + elemHeight / 2 - tooltipHeight / 2;
+        topA = tooltipHeight / 2 - 4;
+        leftA = '-10px';
+        $arrow.css({transform : 'rotate(-90deg)'});
+        if (((this.$body.outerWidth() - (elemOffset.left + this.$activeElem.outerWidth())) - this.$activeTooltip.outerWidth()) < 0) {
+          left = elemOffset.left + elemHalf - tooltipHalf;
+          top = elemOffset.top + elemHeight + margin;
+          topA = '-8px';
+          leftA = tooltipHalf - ($arrow.outerWidth() / 2);
+          $arrow.css({transform : 'rotate(0deg)'});
+        }
       }
-      this.$activeElem = null;
-      this.$activeTooltip = null;
+
+      $arrow
+        .css({
+          top: topA,
+          left: leftA
+        });
+
+      this.$activeTooltip.css({
+        top: top,
+        left: left
+      });
+
     };
 
-    this.animate = function (tooltip) {
+    this._animate = function () {
 
-      tooltip
+      this.$activeTooltip
         .addClass('tooltip-' + settings.animation)
         .addClass('tooltip-initial')
         .css({
@@ -75,22 +138,23 @@ $(function () {
       }, 0);
     };
 
-    this.removeAnimation = function (tooltip) {
-      tooltip
-        .clearQueue()
-        .removeClass('tooltip-show')
-        .addClass('tooltip-dying');
 
-      setTimeout(function() {
-        tooltip.remove();
-      }, settings.animationDuration);
+    // Public methods
 
+    this.destroy = function () {
+      if (settings.animation) {
+        this.removeAnimation();
+      } else {
+        this.$activeTooltip.remove();
+      }
+      this.$activeElem = null;
+      this.$activeTooltip = null;
     };
 
     this.hoverTooltip = function () {
       settings.elem
         .on('mouseenter touchstart', function () {
-          _self.create($(this));
+          _self._create($(this));
         })
         .on('mouseleave touchend', function () {
           _self.destroy();
@@ -104,7 +168,7 @@ $(function () {
         if (_self.$activeElem)
             _self.destroy();
 
-        _self.create($(this));
+        _self._create($(this));
       });
 
       this.$body.on('click', '.js-close', function (e) {
@@ -112,66 +176,31 @@ $(function () {
         e.preventDefault();
       });
 
-      this.$document.on('click', function (e) {
+      this.$window.on('click', function (e) {
         if ($(e.target).closest(settings.elem).length) return;
         _self.destroy();
       });
 
     };
 
-    this.setTooltipPosition = function (elem, tooltip) {
+    this.removeAnimation = function () {
+      this.$activeTooltip
+        .removeClass('tooltip-show')
+        .addClass('tooltip-dying');
 
-      if (!this.$activeElem) return;
+      this.$activeTooltip.remove(); // удаление без анимации, переписать!!!
 
-      var
-        top,
-        left,
-        topA,
-        margin = settings.margin,
-        tooltipHeight = tooltip.outerHeight(),
-        tooltipHalf = (tooltip.outerWidth() / 2),
-        elemHeight = elem.outerHeight(),
-        elemHalf = (elem.outerWidth() / 2),
-        elemOffset = elem.offset(),
-        $arrow = $('.arrow', tooltip);
-
-      left = elemOffset.left + elemHalf - tooltipHalf;
-      top = elemOffset.top + elemHeight + margin;
-
-
-      if (settings.position === 'top') {
-        top = elemOffset.top - tooltipHeight - margin;
-      } else if (settings.position === 'left') {
-
-        left = elemOffset.left - tooltip.outerWidth() - margin;
-
-        if (left < 0) {
-          left = 0;
-        }
-      } else if (settings.position === 'right') {
-        left = elemOffset.left + elemHalf * 2 + margin;
-      }
-
-      if (settings.position === 'left' || settings.position === 'right') {
-
-        top = elemOffset.top + elemHeight / 2 - tooltipHeight / 2;
-
-        topA = tooltipHeight / 2 - 6;
-        $arrow.css({
-          top: topA
-        });
-
-      }
-      console.log(left);
-      tooltip.css({
-        top: top,
-        left: left
-      });
+      // setTimeout(function() {
+      //   _self.$activeTooltip.remove();
+      // }, settings.animationDuration);
 
     };
 
+
+    // Keep tooltip position after window resize
+
     this.$window.on('resize orientationchange', function() {
-      _self.setTooltipPosition(_self.$activeElem, _self.$activeTooltip);
+      _self._setPosition();
     });
 
   }
@@ -183,11 +212,12 @@ $(function () {
 
   var HoverTooltipTop = new Tooltip({
     elem: $('.js-tooltip-hover-top'),
-    layout: '<div class="tooltip-box"><div class="arrow bottom"></div>Tooltip hover top hello world hello world</div>',
     position: 'top',
     margin: 20,
     animation: 'fall',
     animationDuration: 800
+  }, function (elem) {
+    return '<div class="tooltip-box"><div class="arrow"></div>'+elem.data('id')+'</div>';
   });
 
   HoverTooltipTop.hoverTooltip();
@@ -195,9 +225,9 @@ $(function () {
   /*   Hover Tooltip 'bottom'   */
 
   var HoverTooltipBottom = new Tooltip({
-    elem: $('.js-tooltip-hover-bottom'),
-    layout: '<div class="tooltip-box"><div class="arrow top"></div>Tooltip hover bottom</div>',
-    position: 'bottom'
+    elem: $('.js-tooltip-hover-bottom')
+  }, function () {
+    return '<div class="tooltip-box"><div class="arrow"></div>Tooltip hover bottom</div>';
   });
 
   HoverTooltipBottom.hoverTooltip();
@@ -206,8 +236,9 @@ $(function () {
 
   var HoverTooltipLeft = new Tooltip({
     elem: $('.js-tooltip-hover-left'),
-    layout: '<div class="tooltip-box"><div class="arrow right"></div>Tooltip hover left</div>',
     position: 'left'
+  }, function () {
+    return '<div class="tooltip-box"><div class="arrow"></div>Tooltip hover left</div>';
   });
 
   HoverTooltipLeft.hoverTooltip();
@@ -216,8 +247,9 @@ $(function () {
 
   var HoverTooltipRight = new Tooltip({
     elem: $('.js-tooltip-hover-right'),
-    layout: '<div class="tooltip-box"><div class="arrow left"></div>Tooltip hover right</div>',
     position: 'right'
+  }, function () {
+    return '<div class="tooltip-box"><div class="arrow"></div>Tooltip hover right</div>';
   });
 
   HoverTooltipRight.hoverTooltip();
@@ -228,20 +260,19 @@ $(function () {
 
   var ClickTooltipTop = new Tooltip({
     elem: $('.js-tooltip-click-top'),
-    layout: '<div class="tooltip-box top">' +
-              '<div class="arrow bottom"></div>' +
-              '<span>Tooltip click top</span>' +
-              '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
-            '</div>',
     position: 'top',
     animation: 'fall',
     animationDuration: 800
+  }, function () {
+    return '<div class="tooltip-box top">' +
+      '<div class="arrow"></div>' +
+      '<span>Tooltip click top</span>' +
+      '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
+      '</div>'
   });
 
   ClickTooltipTop.destroy = function () {
-
-    this.removeAnimation($('.tooltip-box.top'));
-
+    $('.tooltip-box.top').remove();
   };
 
   ClickTooltipTop.clickTooltip();
@@ -249,13 +280,13 @@ $(function () {
   /*   Click Tooltip bottom   */
 
   var ClickTooltipBottom = new Tooltip({
-    elem: $('.js-tooltip-click-bottom'),
-    layout: '<div class="tooltip-box bottom">' +
-              '<div class="arrow top"></div>' +
-              '<span>Tooltip click bottom</span>' +
-              '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
-            '</div>',
-    position: 'bottom'
+    elem: $('.js-tooltip-click-bottom')
+  }, function () {
+    return '<div class="tooltip-box bottom">' +
+      '<div class="arrow"></div>' +
+      '<span>Tooltip click bottom</span>' +
+      '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
+      '</div>';
   });
 
   ClickTooltipBottom.destroy = function () {
@@ -268,12 +299,13 @@ $(function () {
 
   var ClickTooltipLeft = new Tooltip({
     elem: $('.js-tooltip-click-left'),
-    layout: '<div class="tooltip-box left">' +
-              '<div class="arrow right"></div>' +
-              '<span>Tooltip click left</span>' +
-              '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
-            '</div>',
     position: 'left'
+  }, function () {
+    return '<div class="tooltip-box left">' +
+      '<div class="arrow"></div>' +
+      '<span>Tooltip click left</span>' +
+      '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
+      '</div>';
   });
 
   ClickTooltipLeft.destroy = function () {
@@ -286,12 +318,13 @@ $(function () {
 
   var ClickTooltipRight = new Tooltip({
     elem: $('.js-tooltip-click-right'),
-    layout: '<div class="tooltip-box right">' +
-              '<div class="arrow left"></div>' +
-              '<span>Tooltip click right</span>' +
-              '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
-            '</div>',
     position: 'right'
+  }, function () {
+    return '<div class="tooltip-box right">' +
+      '<div class="arrow"></div>' +
+      '<span>Tooltip click right</span>' +
+      '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
+      '</div>';
   });
 
   ClickTooltipRight.destroy = function () {
