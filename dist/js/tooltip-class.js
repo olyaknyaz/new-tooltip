@@ -28,7 +28,13 @@ $(function () {
       return callback(settings.elem);
     };
 
-    this._create = function (elem) {
+    this._create = function (event, elem) {
+
+      if (this.$activeElem) {
+        this.destroy();
+      }
+
+      if (event.type === 'mouseleave' || event.type === 'touchend') return;
 
       this.$activeElem = elem;
       this.$activeTooltip = $(this._setLayout());
@@ -152,23 +158,26 @@ $(function () {
     };
 
     this.hoverTooltip = function () {
-      settings.elem
-        .on('mouseenter touchstart', function () {
-          _self._create($(this));
-        })
-        .on('mouseleave touchend', function () {
-          _self.destroy();
-        });
+      settings.elem.on('mouseenter touchstart mouseleave', function (e) {
+        _self._create(e, $(this));
+      });
+
+        // .on('mouseenter touchstart', function () {
+        //   _self._create($(this));
+        // })
+        // .on('mouseleave touchend', function () {
+        //   _self.destroy();
+        // });
     };
 
     this.clickTooltip = function () {
 
       settings.elem.on('click', function (e) {
         e.preventDefault();
-        if (_self.$activeElem)
-            _self.destroy();
+        // if (_self.$activeElem)
+        //     _self.destroy();
 
-        _self._create($(this));
+        _self._create(e, $(this));
       });
 
       this.$body.on('click', '.js-close', function (e) {
