@@ -124,22 +124,7 @@ $(function () {
 
     this._animate = function () {
 
-      // animation direction
-      if (settings.animation === 'fall') {
-        this.$activeTooltip.css({
-          top: this.$activeElem.offset().top - this.$activeTooltip.outerHeight() - 60
-        });
-      } else if (settings.animation === 'slide') {
-        if (settings.position === 'right') {
-          this.$activeTooltip.css({
-            left: this.$activeElem.offset().left + this.$activeElem.outerWidth() + 60
-          });
-        } else if ( settings.position === 'left') {
-          this.$activeTooltip.css({
-            left: this.$activeElem.offset().left - this.$activeElem.outerWidth() - 60
-          });
-        }
-      }
+      this._setAnimationDirection();
 
       this.$activeTooltip
         .addClass('tooltip-' + settings.animation)
@@ -166,6 +151,25 @@ $(function () {
       }, 0);
     };
 
+    this._setAnimationDirection = function () {
+      // animation direction
+      if (settings.animation === 'fall') {
+        this.$activeTooltip.css({
+          top: this.$activeElem.offset().top - this.$activeTooltip.outerHeight() - 60
+        });
+      } else if (settings.animation === 'slide') {
+        if (settings.position === 'right') {
+          this.$activeTooltip.css({
+            left: this.$activeElem.offset().left + this.$activeElem.outerWidth() + 60
+          });
+        } else if ( settings.position === 'left') {
+          this.$activeTooltip.css({
+            left: this.$activeElem.offset().left - this.$activeElem.outerWidth() - 60
+          });
+        }
+      }
+    };
+
 
     // Public methods
 
@@ -176,6 +180,7 @@ $(function () {
       } else {
         this.$activeTooltip.remove();
       }
+
       this.$activeElem = null;
       this.$activeTooltip = null;
     };
@@ -199,23 +204,21 @@ $(function () {
       });
 
       this.$window.on('click', function (e) {
-        if ($(e.target).closest(settings.elem).length) return;
+        if ($(e.target).closest(settings.elem).length || $(e.target).closest(_self.$activeTooltip).length) return;
         _self.destroy();
       });
 
     };
 
     this.removeAnimation = function () {
-      this.$activeTooltip
-        .removeClass('tooltip-show')
-        .addClass('tooltip-dying');
-
-      this.$activeTooltip.remove(); // удаление без анимации, переписать!!!
-
-      // setTimeout(function() {
-      //   _self.$activeTooltip.remove();
-      // }, settings.animationDuration);
-
+      if (this.$activeTooltip) {
+        this.$activeTooltip
+          .removeClass('tooltip-show')
+          .addClass('tooltip-dying')
+          .delay(settings.animationDuration).queue(function () {
+          $(this).remove();
+        });
+      }
     };
 
 
@@ -297,7 +300,7 @@ $(function () {
   });
 
   ClickTooltipTop.destroy = function () {
-    $('.tooltip-box.top').remove();
+    this.removeAnimation();
   };
 
   ClickTooltipTop.click();
@@ -309,7 +312,7 @@ $(function () {
   }, function () {
     return '<div class="tooltip-box bottom">' +
       '<div class="arrow"></div>' +
-      '<span>Tooltip click bottom</span>' +
+      '<span>Tooltip click <a href="https://www.google.ru"> bottom</a></span>' +
       '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
       '</div>';
   });
