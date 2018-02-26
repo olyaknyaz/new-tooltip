@@ -7,7 +7,7 @@ $(function () {
       elem: null,
       position: 'bottom',
       margin: 10,
-      animation: 'fade',
+      animation: 'fade', // fall, grow, swing, slide
       animationDuration: 350,
       autoOpen: false
     };
@@ -31,6 +31,10 @@ $(function () {
     this._create = function (event, elem) {
 
       if (this.$activeElem) {
+        this.$activeTooltip.on('mouseleave touchend', function () {
+          _self.destroy();
+        });
+        if(this.$activeTooltip.is(':hover')) return;
         this.destroy();
       }
 
@@ -44,6 +48,7 @@ $(function () {
       if (settings.animation) {
         this._animate();
       }
+
       this._setPosition();
     };
 
@@ -119,6 +124,23 @@ $(function () {
 
     this._animate = function () {
 
+      // animation direction
+      if (settings.animation === 'fall') {
+        this.$activeTooltip.css({
+          top: this.$activeElem.offset().top - this.$activeTooltip.outerHeight() - 60
+        });
+      } else if (settings.animation === 'slide') {
+        if (settings.position === 'right') {
+          this.$activeTooltip.css({
+            left: this.$activeElem.offset().left + this.$activeElem.outerWidth() + 60
+          });
+        } else if ( settings.position === 'left') {
+          this.$activeTooltip.css({
+            left: this.$activeElem.offset().left - this.$activeElem.outerWidth() - 60
+          });
+        }
+      }
+
       this.$activeTooltip
         .addClass('tooltip-' + settings.animation)
         .addClass('tooltip-initial')
@@ -148,6 +170,7 @@ $(function () {
     // Public methods
 
     this.destroy = function () {
+
       if (settings.animation) {
         this.removeAnimation();
       } else {
@@ -157,26 +180,16 @@ $(function () {
       this.$activeTooltip = null;
     };
 
-    this.hoverTooltip = function () {
+    this.hover = function () {
       settings.elem.on('mouseenter touchstart mouseleave', function (e) {
         _self._create(e, $(this));
       });
-
-        // .on('mouseenter touchstart', function () {
-        //   _self._create($(this));
-        // })
-        // .on('mouseleave touchend', function () {
-        //   _self.destroy();
-        // });
     };
 
-    this.clickTooltip = function () {
+    this.click = function () {
 
       settings.elem.on('click', function (e) {
         e.preventDefault();
-        // if (_self.$activeElem)
-        //     _self.destroy();
-
         _self._create(e, $(this));
       });
 
@@ -229,39 +242,42 @@ $(function () {
     return '<div class="tooltip-box"><div class="arrow"></div>'+elem.data('id')+'</div>';
   });
 
-  HoverTooltipTop.hoverTooltip();
+  HoverTooltipTop.hover();
 
   /*   Hover Tooltip 'bottom'   */
 
   var HoverTooltipBottom = new Tooltip({
-    elem: $('.js-tooltip-hover-bottom')
+    elem: $('.js-tooltip-hover-bottom'),
+    animation: 'grow'
   }, function () {
     return '<div class="tooltip-box"><div class="arrow"></div>Tooltip hover bottom</div>';
   });
 
-  HoverTooltipBottom.hoverTooltip();
+  HoverTooltipBottom.hover();
 
   /*   Hover Tooltip 'left'   */
 
   var HoverTooltipLeft = new Tooltip({
     elem: $('.js-tooltip-hover-left'),
-    position: 'left'
+    position: 'left',
+    animation: 'swing'
   }, function () {
     return '<div class="tooltip-box"><div class="arrow"></div>Tooltip hover left</div>';
   });
 
-  HoverTooltipLeft.hoverTooltip();
+  HoverTooltipLeft.hover();
 
   /*   Hover Tooltip 'right'   */
 
   var HoverTooltipRight = new Tooltip({
     elem: $('.js-tooltip-hover-right'),
-    position: 'right'
+    position: 'right',
+    animation: 'slide'
   }, function () {
     return '<div class="tooltip-box"><div class="arrow"></div>Tooltip hover right</div>';
   });
 
-  HoverTooltipRight.hoverTooltip();
+  HoverTooltipRight.hover();
 
 
 
@@ -284,7 +300,7 @@ $(function () {
     $('.tooltip-box.top').remove();
   };
 
-  ClickTooltipTop.clickTooltip();
+  ClickTooltipTop.click();
 
   /*   Click Tooltip bottom   */
 
@@ -302,7 +318,7 @@ $(function () {
     $('.tooltip-box.bottom').remove();
   };
 
-  ClickTooltipBottom.clickTooltip();
+  ClickTooltipBottom.click();
 
   /*   Click Tooltip left   */
 
@@ -321,7 +337,7 @@ $(function () {
     $('.tooltip-box.left').remove();
   };
 
-  ClickTooltipLeft.clickTooltip();
+  ClickTooltipLeft.click();
 
   /*   Click Tooltip right   */
 
@@ -340,6 +356,6 @@ $(function () {
     $('.tooltip-box.right').remove();
   };
 
-  ClickTooltipRight.clickTooltip();
+  ClickTooltipRight.click();
 
 });

@@ -192,7 +192,7 @@ body {
     transition-timing-function: cubic-bezier(0.175, 0.885, 0.320, 1.15);
 }
 .tooltip-fall.tooltip-initial {
-    top: 0 !important;
+    top: 0;
 }
 .tooltip-fall.tooltip-show {
 }
@@ -222,7 +222,7 @@ body {
     transition-timing-function: cubic-bezier(0.175, 0.885, 0.320, 1.15);
 }
 .tooltip-slide.tooltip-initial {
-    left: -40px !important;
+    left: -40px;
 }
 .tooltip-slide.tooltip-show {
 }
