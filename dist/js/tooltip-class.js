@@ -24,10 +24,11 @@ $(function () {
 
     var _self = this;
 
+
     // Private methods
 
     this._setLayout = function () {
-      if (settings.layout && {}.toString.call(settings.layout) === '[object Function]') {
+      if (typeof settings.layout === 'function') {
         return settings.layout(settings.elem);
       } else {
         return settings.layout;
@@ -89,13 +90,13 @@ $(function () {
         $arrow.css({transform : 'rotate(180deg)'});
       }  else if (settings.position === 'left') {
 
-        left = elemOffset.left - this.$activeTooltip.outerWidth() - margin;
+        left = elemOffset.left - tooltipHalf * 2 - margin;
         top = elemOffset.top + elemHeight / 2 - tooltipHeight / 2;
         topA = tooltipHeight / 2 - arrowHeight / 2;
         leftA = this.$activeTooltip.outerWidth() - 2;
         $arrow.css({transform : 'rotate(90deg)'});
 
-        if ((elemOffset.left - this.$activeTooltip.outerWidth()) < 0) {
+        if (elemOffset.left - tooltipHalf * 2 < 0) {
           left = elemOffset.left + elemHalf - tooltipHalf;
           top = elemOffset.top + elemHeight + margin;
           topA = -arrowHeight;
@@ -108,7 +109,7 @@ $(function () {
         topA = tooltipHeight / 2 - arrowHeight / 2;
         leftA = -arrowWidth + 2;
         $arrow.css({transform : 'rotate(-90deg)'});
-        if (((this.$body.outerWidth() - (elemOffset.left + this.$activeElem.outerWidth())) - this.$activeTooltip.outerWidth()) < 0) {
+        if (((this.$body.outerWidth() - (elemOffset.left + elemHalf * 2)) - tooltipHalf * 2) < 0) {
           left = elemOffset.left + elemHalf - tooltipHalf;
           top = elemOffset.top + elemHeight + margin;
           topA = -arrowHeight;
@@ -117,16 +118,16 @@ $(function () {
         }
       }
 
+      this.$activeTooltip.css({
+        top: top,
+        left: left
+      });
+
       $arrow
         .css({
           top: topA,
           left: leftA
         });
-
-      this.$activeTooltip.css({
-        top: top,
-        left: left
-      });
 
     };
 
@@ -349,7 +350,8 @@ $(function () {
             '<a href="https://www.google.ru" class="js-close icon"><img src="../img/close.png" alt=""></a>' +
             '</div>',
     position: 'left',
-    mode: 'click'
+    mode: 'click',
+    animation: 'fall'
   });
 
   ClickTooltipLeft.destroy = function () {
