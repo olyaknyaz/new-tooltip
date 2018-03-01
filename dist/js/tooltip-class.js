@@ -24,6 +24,7 @@ $(function () {
 
     var _self = this;
 
+    var timerId;
 
     // Private methods
 
@@ -171,7 +172,7 @@ $(function () {
           'transition-duration': settings.animationDuration + 'ms'
         });
 
-      setTimeout(function() {
+      timerId = setTimeout(function() {
 
         _self.$activeTooltip
           .addClass('tooltip-show')
@@ -235,8 +236,9 @@ $(function () {
           .removeClass('tooltip-show')
           .addClass('tooltip-dying')
           .delay(settings.animationDuration).queue(function () {
-          $(this).remove();
-        });
+            $(this).remove();
+          });
+        clearTimeout(timerId);
       }
     };
 
