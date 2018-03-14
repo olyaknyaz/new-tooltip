@@ -73,19 +73,19 @@ function Tooltip(options) {
         }
 
         var
-                top,
-                left,
-                topA,
-                leftA,
-                margin = settings.margin,
-                tooltipHeight = this.$activeTooltip.outerHeight(),
-                tooltipHalf = (this.$activeTooltip.outerWidth() / 2),
-                elemHeight = this.$activeElem.outerHeight(),
-                elemHalf = (this.$activeElem.outerWidth() / 2),
-                elemOffset = this.$activeElem.offset(),
-                $arrow = $('.arrow', this.$activeTooltip),
-                arrowHeight = $arrow.outerHeight(),
-                arrowWidth = $arrow.outerWidth();
+            top,
+            left,
+            topA,
+            leftA,
+            margin = settings.margin,
+            tooltipHeight = this.$activeTooltip.outerHeight(),
+            tooltipHalf = (this.$activeTooltip.outerWidth() / 2),
+            elemHeight = this.$activeElem.outerHeight(),
+            elemHalf = (this.$activeElem.outerWidth() / 2),
+            elemOffset = this.$activeElem.offset(),
+            $arrow = $('.arrow', this.$activeTooltip),
+            arrowHeight = $arrow.outerHeight(),
+            arrowWidth = $arrow.outerWidth();
 
         top = elemOffset.top + elemHeight + margin;
         left = elemOffset.left + elemHalf - tooltipHalf;
